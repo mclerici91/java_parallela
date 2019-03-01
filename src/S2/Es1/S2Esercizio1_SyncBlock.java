@@ -41,13 +41,15 @@ class Automobilista implements Runnable {
         for (int i = 0; i < 500; i++) {
             vaiVersoAutostrada();
 
-            autostrada.entrate++;
+            synchronized (autostrada) {
+                autostrada.entrate++;
 
-            int pedaggioTratta = percorriAutostrada();
+                int pedaggioTratta = percorriAutostrada();
 
-            autostrada.uscite++;
-            autostrada.pedaggi += pedaggioTratta;
-            pedaggiPagati += pedaggioTratta;
+                autostrada.uscite++;
+                autostrada.pedaggi += pedaggioTratta;
+                pedaggiPagati += pedaggioTratta;
+            }
         }
         System.out.println("Automobilista " + id + ": terminato");
     }
@@ -70,7 +72,7 @@ class Automobilista implements Runnable {
     }
 }
 
-public class S2Esercizio1 {
+public class S2Esercizio1_SyncBlock {
     public static void main(final String[] args) {
         final Collection<Automobilista> workers = new ArrayList<Automobilista>();
         final Collection<Thread> threads = new ArrayList<Thread>();
