@@ -1,4 +1,4 @@
-package S2.Es1;
+package S2.Es1.SyncBlock;
 
 import java.util.ArrayList;
 import java.util.Collection;
