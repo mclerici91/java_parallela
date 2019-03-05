@@ -4,27 +4,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class Conto {
     private int saldo;
+    public final Lock lock = new ReentrantLock();
 
     public void incrementaSaldo(int valore) {
         saldo += valore;
     }
 
     public void decrementaSaldo(int valore) {
-        saldo -= valore;
+        lock.lock();
+        try {
+            saldo -= valore;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public int getSaldo() {
-        return saldo;
+        lock.lock();
+        try {
+            return saldo;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public boolean empty() {
-        if (saldo > 0) {
-            return false;
-        } else {
-            return true;
+        lock.lock();
+        try {
+            if (saldo > 0) {
+                return false;
+            } else {
+                return true;
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }
@@ -55,7 +73,7 @@ class Utente implements Runnable{
         int prelievo;
         System.out.println(this + " inizio operazione di prelevamento");
         while (!contoComune.empty()) {
-            prelievo = r.nextInt((300-10) + 10);
+            prelievo = r.nextInt((50-5) + 5);
             if (contoComune.getSaldo() >= prelievo)
                 prelievo(prelievo);
 
@@ -75,7 +93,7 @@ public class S2Esercizio3 {
         Conto conto = new Conto();
         int saldoIniziale = 3000;
         int totalePrelevamenti = 0;
-        conto.incrementaSaldo(3000);
+        conto.incrementaSaldo(saldoIniziale);
 
         List<Thread> allThreads = new ArrayList<>();
         List<Utente> allUsers = new ArrayList<>();
@@ -102,7 +120,8 @@ public class S2Esercizio3 {
                     utente + ": saldo: " + utente.getSaldo());
             totalePrelevamenti += utente.getSaldo();
         }
-        System.out.println("Totale saldo comune dopo operazioni di prelievo: " + conto.getSaldo());
+        System.out.println("Totale saldo iniziale sul conto comune: " + saldoIniziale);
+        System.out.println("Totale saldo sul conto comune dopo operazioni di prelievo: " + conto.getSaldo());
         System.out.println("Totale prelevamenti degli utenti: " + totalePrelevamenti);
     }
 }
