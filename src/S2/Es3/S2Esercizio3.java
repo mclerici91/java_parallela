@@ -1,4 +1,4 @@
-package S3;
+package S2.Es3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +11,12 @@ class Conto {
     private int saldo;
     public final Lock lock = new ReentrantLock();
 
+    // Incrementa il saldo sul conto
     public void incrementaSaldo(int valore) {
         saldo += valore;
     }
 
+    // Decrementa il saldo sul conto
     public void decrementaSaldo(int valore) {
         lock.lock();
         try {
@@ -24,6 +26,7 @@ class Conto {
         }
     }
 
+    // Restituisce il saldo disponibile sul conto
     public int getSaldo() {
         lock.lock();
         try {
@@ -33,6 +36,7 @@ class Conto {
         }
     }
 
+    // Verifica se il conto è vuoto
     public boolean empty() {
         lock.lock();
         try {
@@ -58,11 +62,18 @@ class Utente implements Runnable{
         this.saldo = 0;
     }
 
+    // Operazione di prelievo
     public void prelievo(int valore) {
         saldo += valore;
         contoComune.decrementaSaldo(valore);
+        System.out.println("Utente" + this.getId() + ": prelevo " + valore + "$ dal conto contenente " + (contoComune.getSaldo()+valore) + "$. Nuovo saldo " + contoComune.getSaldo() + "$");
     }
 
+    public int getId() {
+        return id;
+    }
+
+    // Restituisce il saldo dell'utente
     public int getSaldo() {
         return saldo;
     }
@@ -71,20 +82,29 @@ class Utente implements Runnable{
     public void run() {
         Random r = new Random();
         int prelievo;
-        System.out.println(this + " inizio operazione di prelevamento");
+        int residuo;
+        System.out.println("Utente" + this.getId() + " inizio operazione di prelevamento");
+
         while (!contoComune.empty()) {
-            prelievo = r.nextInt((50-5) + 5);
-            if (contoComune.getSaldo() >= prelievo)
+            prelievo = r.nextInt(45) + 5;
+
+            if (contoComune.getSaldo() >= prelievo) {
                 prelievo(prelievo);
+            } else {
+                residuo = contoComune.getSaldo();
+                saldo += residuo;
+                contoComune.decrementaSaldo(residuo);
+                System.out.println("Utente" + this.getId() + ": sono riuscito a prelevare solo " + residuo + "$ invece di " + prelievo + "$");
+            }
 
             // Simula il tempo prima di prelevare nuovamente
             try {
-                Thread.sleep(ThreadLocalRandom.current().nextLong(1, 5));
+                Thread.sleep(ThreadLocalRandom.current().nextLong(5, 20));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println(this + " termino operazione di prelievo");
+        System.out.println("Utente" + this.getId() + " termino operazione di prelievo");
     }
 }
 
@@ -98,11 +118,12 @@ public class S2Esercizio3 {
         List<Thread> allThreads = new ArrayList<>();
         List<Utente> allUsers = new ArrayList<>();
 
+        // Creazione degli utenti
         for (int i = 1; i <= 5; i++) {
             final Utente user = new Utente(i, conto);
             allUsers.add(user);
             allThreads.add(new Thread(user));
-            System.out.println("Creato utente: " + user);
+            System.out.println("Creato utente: Utente" + user.getId());
         }
 
         allThreads.forEach(Thread::start);
@@ -115,9 +136,10 @@ public class S2Esercizio3 {
             }
         }
 
+        // Reports
         for (Utente utente : allUsers) {
             System.out.println(
-                    utente + ": saldo: " + utente.getSaldo());
+                    "Utente" + utente.getId() + ": saldo: " + utente.getSaldo());
             totalePrelevamenti += utente.getSaldo();
         }
         System.out.println("Totale saldo iniziale sul conto comune: " + saldoIniziale);
