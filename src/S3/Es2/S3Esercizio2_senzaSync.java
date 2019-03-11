@@ -3,29 +3,10 @@ package S3.Es2;
 import java.util.ArrayList;
 import java.util.List;
 
-class Contatore {
-    private int valore;
-
-    public Contatore(int valore) {
-        this.valore = valore;
-    }
-
-    public int getValore() {
-        return valore;
-    }
-
-    public void incrementaValore(int n) {
-        this.valore += n;
-    }
-
-    public void azzeraContatore() {
-        this.valore = 0;
-    }
-}
-
 class Sensore implements Runnable {
     private int id;
     private int soglia;
+    public static int contatore;
 
     public Sensore(int id, int soglia) {
         this.id = id;
@@ -48,7 +29,6 @@ class Sensore implements Runnable {
 
 public class S3Esercizio2_senzaSync {
     public static void main(String[] args) {
-        Contatore contatore = new Contatore(0);
 
         List<Thread> allThreads = new ArrayList<>();
         List<Sensore> allSensors = new ArrayList<>();
