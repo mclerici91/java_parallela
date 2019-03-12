@@ -1,4 +1,4 @@
-package S3.Es2;
+package S3.Es2.Volatile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,20 +25,20 @@ class Sensore implements Runnable {
     @Override
     public void run() {
         while (!isSuperato) {
-            if (soglia < S3Esercizio2_senzaSync.contatore) {
+            if (soglia < S3Esercizio2_volatile.contatore) {
                 System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 System.out.println("Sensore" + id + " - Soglia superata.");
                 System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                S3Esercizio2_senzaSync.contatore = 0;
+                S3Esercizio2_volatile.contatore = 0;
                 isSuperato = true;
             }
         }
     }
 }
 
-public class S3Esercizio2_senzaSync {
+public class S3Esercizio2_volatile {
 
-    public static int contatore;
+    public static volatile int contatore;
 
 
     public static void main(String[] args) {
@@ -58,11 +58,11 @@ public class S3Esercizio2_senzaSync {
         allThreads.forEach(Thread::start);
 
         // Incremento contatore
-        while (S3Esercizio2_senzaSync.contatore <= 120) {
+        while (S3Esercizio2_volatile.contatore <= 120) {
 
             final int n = ThreadLocalRandom.current().nextInt(1, 9);
-            S3Esercizio2_senzaSync.contatore += n;
-            System.out.println("VALORE CONTATORE: " + S3Esercizio2_senzaSync.contatore);
+            S3Esercizio2_volatile.contatore += n;
+            System.out.println("VALORE CONTATORE: " + S3Esercizio2_volatile.contatore);
 
             try {
                 Thread.sleep(ThreadLocalRandom.current().nextLong(5, 11));
