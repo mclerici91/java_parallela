@@ -14,13 +14,6 @@ class Sensore implements Runnable {
 
     @Override
     public void run() {
-        /*System.out.println("Sensore[" + soglia + "]: inizio ad osservare!");
-
-        while (!S4Esercizio2.counter.compareAndSet(soglia, 0) || (S4Esercizio2.counter.get() < soglia)) {
-            *//* Busy wait *//*
-        }
-
-        System.out.println("Sensore[" + soglia + "]: soglia superata!");*/
         System.out.println("Sensore[" + soglia + "]: inizio ad osservare!");
 
         while (!resetIfAbove()) {
@@ -31,16 +24,19 @@ class Sensore implements Runnable {
     }
 
     private boolean resetIfAbove() {
+        int valorePrecedente, valoreAttuale;
         int currentAmount = S4Esercizio2.counter.get();
-        if (currentAmount < soglia)
+        if (currentAmount < soglia) {
             return false;
-        S4Esercizio2.counter.set(0);
-        return true;
+        } else {
+            valorePrecedente = S4Esercizio2.counter.get();
+            valoreAttuale = 0;
+            return S4Esercizio2.counter.compareAndSet(valorePrecedente, valoreAttuale);
+        }
     }
-
-
-
 }
+
+
 public class S4Esercizio2 {
     // shared counter
     static final AtomicInteger counter = new AtomicInteger();
