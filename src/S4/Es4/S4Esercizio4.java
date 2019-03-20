@@ -35,16 +35,8 @@ class Coordinate {
 class GPS implements Runnable {
     @Override
     public void run() {
-
         while (!S4Esercizio4.completed) {
-
-            S4Esercizio4.lock.lock();
-            try {
                 S4Esercizio4.curLocation = new Coordinate(ThreadLocalRandom.current().nextDouble(-90.0, +90.0), ThreadLocalRandom.current().nextDouble(-180.0, +180.0));
-            } finally {
-                S4Esercizio4.lock.unlock();
-            }
-
             // Wait before updating position
             try {
                 Thread.sleep(ThreadLocalRandom.current().nextLong(1, 5));
