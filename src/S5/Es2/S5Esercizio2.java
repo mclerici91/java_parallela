@@ -49,18 +49,7 @@ class EventSource implements Runnable {
 class EventListener {
     private final int id;
 
-    public EventListener(final int id, final EventSource eventSource) {
-        // Aggiunge listener alla eventSource per ricevere le notifiche
-        eventSource.registerListener(id, this);
-
-        // Sleep che facilita l'apparizione del problema. In una situazione
-        // reale qui potrebbe fare altre inizializzazioni.
-        try {
-            Thread.sleep(4);
-        } catch (final InterruptedException e) {
-            // Thread interrupted
-        }
-
+    public EventListener(final int id) {
         this.id = id;
     }
 
@@ -84,7 +73,11 @@ public class S5Esercizio2 {
         // Crea e registra il listener alla sorgente
         final List<EventListener> allListeners = new ArrayList<>();
         for (int i = 1; i <= 20; i++)
-            allListeners.add(new EventListener(i, eventSource));
+        {
+            final EventListener listener = new EventListener(i);
+            eventSource.registerListener(i, listener);
+            allListeners.add(listener);
+        }
 
         // Attende che il Thread termini
         try {

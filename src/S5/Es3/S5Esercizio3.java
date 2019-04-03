@@ -10,12 +10,12 @@ final class SharedState implements IState {
     private int value = 0;
 
     @Override
-    public void increment() {
+    public synchronized void increment() {
         value++;
     }
 
     @Override
-    public int getValue() {
+    public synchronized int getValue() {
         return value;
     }
 }
@@ -110,7 +110,7 @@ class Starter implements Runnable {
 public class S5Esercizio3 {
     public static final boolean THREADSAFE_SHARE = false;
 
-    static IState sharedState = null;
+    static volatile IState sharedState = null;
 
     public static void main(final String[] args) {
         // Create Threads
