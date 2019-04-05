@@ -27,14 +27,14 @@ class Bagno {
     private boolean occupato = false;
 
     // Ritorna false se gia occupato
-    public boolean provaOccupare() {
+    public synchronized boolean provaOccupare() {
         if (occupato)
             return false;
         this.occupato = true;
         return true;
     }
 
-    public void libera() {
+    public synchronized void libera() {
         this.occupato = false;
     }
 }
@@ -53,7 +53,7 @@ class S6ServiziPubblici {
             this.bagniDonne[i] = new Bagno();
     }
 
-    public synchronized boolean occupaBagno(final boolean uomo) {
+    public boolean occupaBagno(final boolean uomo) {
         Bagno bagnoOccupato = null;
 
         if (uomo) {
