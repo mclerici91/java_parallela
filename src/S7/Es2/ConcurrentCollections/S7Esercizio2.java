@@ -1,9 +1,10 @@
-package S7.Es2;
+package S7.Es2.ConcurrentCollections;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class S7Es2Timer {
     private long startTime = -1;
@@ -91,18 +92,15 @@ public class S7Esercizio2 {
     // Used to know when all adders have finished
     static volatile boolean isRunning = true;
 
-    static List<String> sharedPhrase;
+    static CopyOnWriteArrayList<String> sharedPhrase;
 
     public static void main(final String[] args) {
         final S7Es2Timer timer = new S7Es2Timer();
 
-        // Initialize phrase with words
-        final List<String> list = new ArrayList<>();
-        for (int i = 0; i < 100; i++)
-            list.add(getWord());
-
         // Share list
-        S7Esercizio2.sharedPhrase = list;
+        S7Esercizio2.sharedPhrase = new CopyOnWriteArrayList<String>();
+        for (int i = 0; i < 100; i++)
+            sharedPhrase.add(getWord());
 
         // Create WordAdder and Reader threads
         final List<ReadWorker> allWorkers = new ArrayList<>();

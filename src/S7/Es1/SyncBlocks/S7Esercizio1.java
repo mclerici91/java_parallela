@@ -1,4 +1,4 @@
-package S7.Es1;
+package S7.Es1.SyncBlocks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,26 +28,28 @@ class TestWorker implements Runnable {
                     + random.nextInt(S7Esercizio1.NUM_WORKERS);
             updateCounter(random.nextBoolean());
 
-            if (counter == 0) {
-                if (sharedMap.containsKey(key)
-                        && sharedMap.get(key).equals(int1)) {
-                    sharedMap.remove(key);
-                    log("{" + key + "} remove 1");
-                }
-            } else if (counter == 1) {
-                if (!sharedMap.containsKey(key)) {
-                    sharedMap.put(key, int1);
-                    log("{" + key + "} put 1");
-                }
-            } else if (counter == 5) {
-                if (sharedMap.containsKey(key) && sharedMap.get(key).equals(10)) {
-                    final Integer prev = sharedMap.put(key, int5);
-                    log("{" + key + "} replace " + prev.intValue() + " with 5");
-                }
-            } else if (counter == 10) {
-                if (sharedMap.containsKey(key)) {
-                    final Integer prev = sharedMap.put(key, int10);
-                    log("{" + key + "} replace " + prev.intValue() + " with 10");
+            synchronized (this) {
+                if (counter == 0) {
+                    if (sharedMap.containsKey(key)
+                            && sharedMap.get(key).equals(int1)) {
+                        sharedMap.remove(key);
+                        log("{" + key + "} remove 1");
+                    }
+                } else if (counter == 1) {
+                    if (!sharedMap.containsKey(key)) {
+                        sharedMap.put(key, int1);
+                        log("{" + key + "} put 1");
+                    }
+                } else if (counter == 5) {
+                    if (sharedMap.containsKey(key) && sharedMap.get(key).equals(10)) {
+                        final Integer prev = sharedMap.put(key, int5);
+                        log("{" + key + "} replace " + prev.intValue() + " with 5");
+                    }
+                } else if (counter == 10) {
+                    if (sharedMap.containsKey(key)) {
+                        final Integer prev = sharedMap.put(key, int10);
+                        log("{" + key + "} replace " + prev.intValue() + " with 10");
+                    }
                 }
             }
         }
