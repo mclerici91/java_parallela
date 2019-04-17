@@ -1,5 +1,7 @@
 package S5.Es3;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 interface IState {
     void increment();
 
@@ -39,18 +41,18 @@ class Helper implements Runnable {
     public void run() {
         System.out.println("Helper : started and waiting until shared state is set!");
         while (true) {
-            if (S5Esercizio3.sharedState != null)
+            if (S5Esercizio3.sharedState.get() != null)
                 break;
         }
 
-        int lastValue = S5Esercizio3.sharedState.getValue();
+        int lastValue = S5Esercizio3.sharedState.get().getValue();
 
         System.out.println("Helper : shared state initialized and current value is " + lastValue
                 + ". Waiting until value changes");
 
         // Wait until value changes
         while (true) {
-            final int curValue = S5Esercizio3.sharedState.getValue();
+            final int curValue = S5Esercizio3.sharedState.get().getValue();
             if (lastValue != curValue) {
                 lastValue = curValue;
                 break;
@@ -59,7 +61,7 @@ class Helper implements Runnable {
         System.out.println("Helper : value changed to " + lastValue + "!");
 
         for (int i = 0; i < 5000; i++) {
-            S5Esercizio3.sharedState.increment();
+            S5Esercizio3.sharedState.get().increment();
             if ((i % 100) == 0)
                 try {
                     Thread.sleep(1);
@@ -83,9 +85,9 @@ class Starter implements Runnable {
         System.out.println("Starter : initialized shared state");
         // Choose which share to instantiate
         if (S5Esercizio3.THREADSAFE_SHARE)
-            S5Esercizio3.sharedState = new ThreadSafeSharedState();
+            S5Esercizio3.sharedState.set(new ThreadSafeSharedState());
         else
-            S5Esercizio3.sharedState = new SharedState();
+            S5Esercizio3.sharedState.set(new SharedState());
 
         // Sleep before updating
         try {
@@ -96,7 +98,7 @@ class Starter implements Runnable {
         // Perform 5000 increments and exit
         System.out.println("Starter : begin incrementing");
         for (int i = 0; i < 5000; i++) {
-            S5Esercizio3.sharedState.increment();
+            S5Esercizio3.sharedState.get().increment();
             if ((i % 100) == 0)
                 try {
                     Thread.sleep(1);
@@ -108,9 +110,9 @@ class Starter implements Runnable {
 }
 
 public class S5Esercizio3 {
-    public static final boolean THREADSAFE_SHARE = false;
+    public static final boolean THREADSAFE_SHARE = true;
 
-    static volatile IState sharedState = null;
+    static AtomicReference<IState> sharedState = new AtomicReference<>(null);
 
     public static void main(final String[] args) {
         // Create Threads
@@ -128,7 +130,7 @@ public class S5Esercizio3 {
         } catch (final InterruptedException e) {
 
         }
-        System.out.println("Main: final value " + S5Esercizio3.sharedState.getValue());
+        System.out.println("Main: final value " + S5Esercizio3.sharedState.get().getValue());
     }
 }
 

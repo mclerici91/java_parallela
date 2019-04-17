@@ -68,9 +68,6 @@ class Prosperita implements Runnable {
             do {
                 oldValue = EsercizioPopolazioni.popolazione.get(popoloScelto);
                 newValue = (long) (oldValue*fattoreCrescita);
-                //EsercizioPopolazioni.popolazione[popoloScelto] *= fattoreCrescita;
-                //popolazioneAggiornata = EsercizioPopolazioni.popolazione[popoloScelto];
-                //EsercizioPopolazioni.lock.unlock();
             } while (!EsercizioPopolazioni.popolazione.compareAndSet(popoloScelto, oldValue, newValue));
 
             popolazioneAggiornata = EsercizioPopolazioni.popolazione.get(popoloScelto);
