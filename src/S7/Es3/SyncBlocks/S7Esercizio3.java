@@ -12,8 +12,7 @@ class Letter {
     }
 }
 
-class Friend implements Runnable
-{
+class Friend implements Runnable {
     private int id;
 
     public Friend(int id) {
@@ -24,27 +23,29 @@ class Friend implements Runnable
     public void run() {
         int totLetters = 150;
 
-        synchronized (S7Esercizio3.sharedPost) {
-            // Scrittura delle prime 2-5 lettere
-            for (int i = 0; i < ThreadLocalRandom.current().nextInt(2,5); i++) {
+        // Scrittura delle prime 2-5 lettere
+        for (int i = 0; i < ThreadLocalRandom.current().nextInt(2, 5); i++) {
+            synchronized (S7Esercizio3.sharedPost) {
                 S7Esercizio3.sharedPost.add(new Letter(this.id));
-                System.out.println("Amico" + this.id + ": spedito lettera nr. " + (i+1));
+                System.out.println("Amico" + this.id + ": spedito lettera nr. " + (i + 1));
+            }
+        }
+
+        //Scrittura delle risposte e sleep
+        while (totLetters > 0) {
+            //synchronized (S7Esercizio3.sharedPost) {
+            synchronized (S7Esercizio3.sharedPost) {
+                S7Esercizio3.sharedPost.add(new Letter(this.id));
+                //}
+                System.out.println("Amico" + this.id + ": spedito risposta nr. " + (151 - totLetters));
+                totLetters--;
             }
 
-            //Scrittura delle risposte e sleep
-            while (totLetters > 0) {
-                //synchronized (S7Esercizio3.sharedPost) {
-                    S7Esercizio3.sharedPost.add(new Letter(this.id));
-                //}
-                System.out.println("Amico" + this.id + ": spedito risposta nr. " + (151-totLetters));
-                totLetters--;
-
-                //Tempo di ricezione lettera
-                try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(5,50));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            //Tempo di ricezione lettera
+            try {
+                Thread.sleep(ThreadLocalRandom.current().nextInt(5, 50));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -57,7 +58,7 @@ public class S7Esercizio3 {
         final List<Friend> allFriends = new ArrayList<>();
         final List<Thread> allThreads = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
-            final Friend friend = new Friend(i+1);
+            final Friend friend = new Friend(i + 1);
             allFriends.add(friend);
             allThreads.add(new Thread(friend));
         }
