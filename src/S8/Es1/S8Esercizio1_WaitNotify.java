@@ -1,5 +1,7 @@
 package S8.Es1;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 class Worker implements Runnable {
@@ -28,8 +30,11 @@ class Worker implements Runnable {
         for (int i = 0; i < matrix.length; i++) {
             this.lineSum += matrix[this.id][i];
         }
+        S8Esercizio1_WaitNotify.lineSumCompleted++;
         while (S8Esercizio1_WaitNotify.lineSumCompleted != 10) {
-            wait();
+            try {
+                wait();
+            } catch (InterruptedException e) {}
         }
     }
 
@@ -38,15 +43,27 @@ class Worker implements Runnable {
         for (int i = 0; i < matrix.length; i++) {
             this.columnSum += matrix[i][this.id];
         }
+        S8Esercizio1_WaitNotify.columnSumCompleted++;
         while (S8Esercizio1_WaitNotify.columnSumCompleted != 10) {
-            wait();
+            try {
+                wait();
+            } catch (InterruptedException e) {}
         }
     }
 
 
     @Override
     public void run() {
-
+        try {
+            sumColumn(S8Esercizio1_WaitNotify.matrix);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            sumColumn(S8Esercizio1_WaitNotify.matrix);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
 
@@ -58,6 +75,17 @@ public class S8Esercizio1_WaitNotify {
     static volatile int columnSumCompleted = 0;
 
     public static void main(String[] args) {
+        int totalRows = 0;
+        int totalColumns = 0;
+
+        final List<Worker> allWorker = new ArrayList<>();
+        final List<Thread> allThreads = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            final Worker worker = new Worker(i);
+            allWorker.add(worker);
+            allThreads.add(new Thread(worker));
+        }
+
         // Inizializza matrice con valori random
         initMatrix();
 
@@ -65,13 +93,25 @@ public class S8Esercizio1_WaitNotify {
         System.out.println("Matrice:");
         printMatrix();
 
+        System.out.println("Simulation started");
+        System.out.println("--------------------------------------------");
+        for (final Thread t : allThreads)
+            t.start();
+
         // Calcola somma delle righe
         //for (int row = 0; row < matrix.length; row++)
         //    rowSum[row] = sumRow(row);
+        while (lineSumCompleted < 10) {
+            //
+        }
+        for (int i = 0; i < 10; i++) {
+            totalRows = totalRows + allWorker.get(i).getLineSum();
+        }
+
 
         // Stampa somma delle righe
         System.out.println("Somme delle righe:");
-        printArray(rowSum);
+        //printArray(rowSum);
 
         // Calcola somma delle colonne
         for (int col = 0; col < matrix[0].length; col++)
