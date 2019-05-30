@@ -1,14 +1,20 @@
-package S8.Es1;
+package S8.Es1.Conditions;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class Worker implements Runnable {
     private int id;
     private int lineSum = 0;
     private int columnSum = 0;
-    static final Object workLock = new Object();
+    static final Lock workLock = new ReentrantLock();
+    static final Condition rowCalculated = workLock.newCondition();
+    static final Condition columnCalculated = workLock.newCondition();
+
 
     public Worker(int id) {
         this.id = id;
@@ -31,7 +37,7 @@ class Worker implements Runnable {
         for (int i = 0; i < matrix.length; i++) {
             this.lineSum += matrix[this.id][i];
         }
-        S8Esercizio1_WaitNotify.lineSumCompleted++;
+        S8Esercizio1_Conditions.lineSumCompleted++;
     }
 
     // Calcola somma della colonna
@@ -39,37 +45,43 @@ class Worker implements Runnable {
         for (int i = 0; i < matrix.length; i++) {
             this.columnSum += matrix[i][this.id];
         }
-        S8Esercizio1_WaitNotify.columnSumCompleted++;
+        S8Esercizio1_Conditions.columnSumCompleted++;
     }
 
 
     @Override
     public void run() {
-        synchronized (workLock) {
-            while (S8Esercizio1_WaitNotify.lineSumCompleted < 10) {
-                sumLine(S8Esercizio1_WaitNotify.matrix);
+        workLock.lock();
+        try {
+            while (S8Esercizio1_Conditions.lineSumCompleted < 10) {
+                sumLine(S8Esercizio1_Conditions.matrix);
                 try {
-                    workLock.wait();
+                    rowCalculated.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+        } finally {
+            workLock.unlock();
         }
 
-        synchronized (workLock) {
-            while (S8Esercizio1_WaitNotify.columnSumCompleted < 10) {
-                sumColumn(S8Esercizio1_WaitNotify.matrix);
+        workLock.lock();
+        try {
+            while (S8Esercizio1_Conditions.columnSumCompleted < 10) {
+                sumColumn(S8Esercizio1_Conditions.matrix);
                 try {
-                    workLock.wait();
+                    columnCalculated.await();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+        } finally {
+            workLock.unlock();
         }
     }
 }
 
-public class S8Esercizio1_WaitNotify {
+public class S8Esercizio1_Conditions {
     final static int[][] matrix = new int[10][10];
     static volatile int lineSumCompleted = 0;
     static volatile int columnSumCompleted = 0;
@@ -103,8 +115,11 @@ public class S8Esercizio1_WaitNotify {
         while (lineSumCompleted < 10) {
             //
         }
-        synchronized (Worker.workLock) {
-            Worker.workLock.notifyAll();
+        Worker.workLock.lock();
+        try {
+            Worker.rowCalculated.signalAll();
+        } finally {
+            Worker.workLock.unlock();
         }
         for (int i = 0; i < 10; i++) {
             totalRows = totalRows + allWorker.get(i).getLineSum();
@@ -117,8 +132,11 @@ public class S8Esercizio1_WaitNotify {
         while (columnSumCompleted < 10) {
             //
         }
-        synchronized (Worker.workLock) {
-            Worker.workLock.notifyAll();
+        Worker.workLock.lock();
+        try {
+            Worker.columnCalculated.signalAll();
+        } finally {
+            Worker.workLock.unlock();
         }
         for (int i = 0; i < 10; i++) {
             totalColumns = totalColumns + allWorker.get(i).getColumnSum();
