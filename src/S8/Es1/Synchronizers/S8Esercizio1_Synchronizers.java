@@ -1,14 +1,18 @@
 package S8.Es1.Synchronizers;
 
+import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Phaser;
 
 class Worker implements Runnable {
     private int id;
     private int lineSum = 0;
     private int columnSum = 0;
-    static final Object workLock = new Object();
+    static volatile Phaser linePhaser = new Phaser(1);
+    static volatile Phaser columnPhaser = new Phaser(1);
 
     public Worker(int id) {
         this.id = id;
@@ -45,27 +49,23 @@ class Worker implements Runnable {
 
     @Override
     public void run() {
-        synchronized (workLock) {
-            while (S8Esercizio1_Synchronizers.lineSumCompleted < 10) {
-                sumLine(S8Esercizio1_Synchronizers.matrix);
-                try {
-                    workLock.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+
+        synchronized (linePhaser) {
+            linePhaser.arriveAndAwaitAdvance();
+
+            sumLine(S8Esercizio1_Synchronizers.matrix);
+
+            linePhaser.arriveAndDeregister();
         }
 
-        synchronized (workLock) {
-            while (S8Esercizio1_Synchronizers.columnSumCompleted < 10) {
-                sumColumn(S8Esercizio1_Synchronizers.matrix);
-                try {
-                    workLock.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        synchronized (columnPhaser) {
+            columnPhaser.arriveAndAwaitAdvance();
+
+            sumColumn(S8Esercizio1_Synchronizers.matrix);
+
+            columnPhaser.arriveAndDeregister();
         }
+
     }
 }
 
@@ -73,6 +73,7 @@ public class S8Esercizio1_Synchronizers {
     final static int[][] matrix = new int[10][10];
     static volatile int lineSumCompleted = 0;
     static volatile int columnSumCompleted = 0;
+
 
     public static void main(String[] args) {
         int totalRows = 0;
@@ -83,6 +84,8 @@ public class S8Esercizio1_Synchronizers {
         for (int i = 0; i < 10; i++) {
             final Worker worker = new Worker(i);
             allWorker.add(worker);
+            Worker.linePhaser.register();
+            Worker.columnPhaser.register();
             allThreads.add(new Thread(worker));
         }
 
@@ -100,12 +103,11 @@ public class S8Esercizio1_Synchronizers {
             t.start();
 
         // Calcola somma delle righe
-        while (lineSumCompleted < 10) {
-            //
-        }
-        synchronized (Worker.workLock) {
-            Worker.workLock.notifyAll();
-        }
+        //synchronized (Worker.linePhaser) {
+            while (!Worker.linePhaser.isTerminated()) {
+                //
+            }
+        //}
         for (int i = 0; i < 10; i++) {
             totalRows = totalRows + allWorker.get(i).getLineSum();
         }
@@ -114,12 +116,11 @@ public class S8Esercizio1_Synchronizers {
 
 
         // Calcola somma delle colonne
-        while (columnSumCompleted < 10) {
-            //
-        }
-        synchronized (Worker.workLock) {
-            Worker.workLock.notifyAll();
-        }
+        //synchronized (Worker.columnPhaser) {
+            while (Worker.columnPhaser.isTerminated()) {
+                //
+            }
+        //}
         for (int i = 0; i < 10; i++) {
             totalColumns = totalColumns + allWorker.get(i).getColumnSum();
         }
