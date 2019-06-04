@@ -1,18 +1,16 @@
 package S8.Es1.Synchronizers;
 
-import com.sun.xml.internal.ws.api.pipe.FiberContextSwitchInterceptor;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Phaser;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 class Worker implements Runnable {
     private int id;
     private int lineSum = 0;
     private int columnSum = 0;
-    static volatile Phaser linePhaser = new Phaser(1);
-    static volatile Phaser columnPhaser = new Phaser(1);
+    static CyclicBarrier barrier = new CyclicBarrier(11);
 
     public Worker(int id) {
         this.id = id;
@@ -46,26 +44,27 @@ class Worker implements Runnable {
         S8Esercizio1_Synchronizers.columnSumCompleted++;
     }
 
-//
     @Override
     public void run() {
+        sumLine(S8Esercizio1_Synchronizers.matrix);
 
-        synchronized (linePhaser) {
-            linePhaser.arriveAndAwaitAdvance();
-
-            sumLine(S8Esercizio1_Synchronizers.matrix);
-
-            linePhaser.arriveAndDeregister();
+        try {
+            barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
         }
 
-        synchronized (columnPhaser) {
-            columnPhaser.arriveAndAwaitAdvance();
+        sumColumn(S8Esercizio1_Synchronizers.matrix);
 
-            sumColumn(S8Esercizio1_Synchronizers.matrix);
-
-            columnPhaser.arriveAndDeregister();
+        try {
+            barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
         }
-
     }
 }
 
@@ -73,7 +72,6 @@ public class S8Esercizio1_Synchronizers {
     final static int[][] matrix = new int[10][10];
     static volatile int lineSumCompleted = 0;
     static volatile int columnSumCompleted = 0;
-
 
     public static void main(String[] args) {
         int totalRows = 0;
@@ -84,8 +82,6 @@ public class S8Esercizio1_Synchronizers {
         for (int i = 0; i < 10; i++) {
             final Worker worker = new Worker(i);
             allWorker.add(worker);
-            Worker.linePhaser.register();
-            Worker.columnPhaser.register();
             allThreads.add(new Thread(worker));
         }
 
@@ -102,25 +98,30 @@ public class S8Esercizio1_Synchronizers {
         for (final Thread t : allThreads)
             t.start();
 
+        try {
+            Worker.barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+
         // Calcola somma delle righe
-        //synchronized (Worker.linePhaser) {
-            while (!Worker.linePhaser.isTerminated()) {
-                //
-            }
-        //}
         for (int i = 0; i < 10; i++) {
             totalRows = totalRows + allWorker.get(i).getLineSum();
         }
         // Stampa somma delle righe
         System.out.println("Somma delle righe: " + totalRows);
 
+        try {
+            Worker.barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
 
         // Calcola somma delle colonne
-        //synchronized (Worker.columnPhaser) {
-            while (Worker.columnPhaser.isTerminated()) {
-                //
-            }
-        //}
         for (int i = 0; i < 10; i++) {
             totalColumns = totalColumns + allWorker.get(i).getColumnSum();
         }
