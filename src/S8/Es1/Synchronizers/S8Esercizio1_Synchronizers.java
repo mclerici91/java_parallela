@@ -46,7 +46,7 @@ class Worker implements Runnable {
         S8Esercizio1_Synchronizers.columnSumCompleted++;
     }
 
-
+//
     @Override
     public void run() {
 
