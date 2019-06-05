@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 class Testimone {
     private int id;
@@ -21,7 +22,7 @@ class Testimone {
 
 class Squadra {
     private int id;
-    private int totalRunTime;
+    private int totalRunTime = 0;
     private int completedRun = 0;
     private List<Corridore> corridori = new ArrayList<>();
 
@@ -50,6 +51,10 @@ class Squadra {
         this.completedRun = completedRun;
     }
 
+    public void addTotalRunTime(int time) {
+        this.totalRunTime += time;
+    }
+
     public void addCorridore(Corridore corridore) {
         this.corridori.add(corridore);
     }
@@ -66,9 +71,11 @@ class Squadra {
 class Corridore implements Runnable {
     private int id;
     private int runTime;
+    private boolean go = false;
     Squadra squadra;
-    Testimone testimone;
-    static CountDownLatch countdown = new CountDownLatch(40);
+    Testimone testimone = null;
+    static CountDownLatch countdown = new CountDownLatch(41);
+    ReentrantLock passaggio = new ReentrantLock();
 
     public Corridore(int id, Squadra squadra) {
         this.id = id;
@@ -84,6 +91,10 @@ class Corridore implements Runnable {
         return runTime;
     }
 
+    public void setGo(boolean go) {
+        this.go = go;
+    }
+
     @Override
     public void run() {
 
@@ -95,31 +106,42 @@ class Corridore implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        while (this.testimone == null) {
-            //
-        }
 
-        System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.getId() + ": Inizio a correre...");
+            while (this.testimone == null) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
         // Corsa
         this.runTime = (ThreadLocalRandom.current().nextInt(100, 150));
+        this.squadra.addTotalRunTime(this.runTime);
         try {
             Thread.sleep(this.runTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.getId() + ": Corso per " + this.runTime + "ms");
         this.squadra.incrementCompletedRun();
 
-        if (this.squadra.getCompletedRun() == 10) {
+        if (this.squadra.getCompletedRun() >= 10) {
             if (S8Esercizio3.vincitore.compareAndSet(null, this)) {
                 System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.getId() + ": HO VINTO!");
             } else {
                 System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.getId() + ": HO PERSO");
             }
         } else {
-            this.squadra.getCorridore(this.id+1).testimone = this.testimone;
-            this.testimone = null;
-            System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.id + ": corsa di " + this.runTime + "ms, passo il testimone" + this.testimone.getId() + " a Corridore" + this.id+1);
-        }
+            passaggio.lock();
+            try {
+                this.squadra.getCorridore(((this.id + 1) - ((this.squadra.getId() - 1) * 10)) - 1).testimone = this.testimone;
+                System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.getId() + ": Assegnamento del testimone nr. " + this.squadra.getCorridore(((this.id + 1) - ((this.squadra.getId() - 1) * 10)) - 1).testimone.getId() + " al Corridore " + this.squadra.getCorridore(((this.id + 1) - ((this.squadra.getId() - 1) * 10)) - 1).getId());
+                this.testimone = null;
+                } finally {
+                passaggio.unlock();
+            }
+            }
     }
 }
 
@@ -163,6 +185,16 @@ public class S8Esercizio3 {
             allThreads.add(new Thread(corridore));
         }
 
+        Testimone testimone1 = new Testimone(1);
+        Testimone testimone2 = new Testimone(2);
+        Testimone testimone3 = new Testimone(3);
+        Testimone testimone4 = new Testimone(4);
+
+        squadra1.getCorridore(0).testimone = testimone1;
+        squadra2.getCorridore(0).testimone = testimone2;
+        squadra3.getCorridore(0).testimone = testimone3;
+        squadra4.getCorridore(0).testimone = testimone4;
+
 
 
         // Partenza dei threads
@@ -174,6 +206,30 @@ public class S8Esercizio3 {
 
 
         Corridore.countdown.countDown();
+        try {
+            Corridore.countdown.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+
+
+
+        for (final Thread t : allThreads) {
+            try {
+                t.join();
+            } catch (final InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("--------------------------------------------");
+        System.out.println("Simulation finished");
+
+        System.out.println("SQUADRA1 - Tempo totale: " + squadra1.getTotalRunTime() + "ms");
+        System.out.println("SQUADRA2 - Tempo totale: " + squadra2.getTotalRunTime() + "ms");
+        System.out.println("SQUADRA3 - Tempo totale: " + squadra3.getTotalRunTime() + "ms");
+        System.out.println("SQUADRA4 - Tempo totale: " + squadra4.getTotalRunTime() + "ms");
 
     }
 }
