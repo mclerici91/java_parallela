@@ -47,20 +47,12 @@ class Squadra {
         this.completedRun++;
     }
 
-    public void setCompletedRun(int completedRun) {
-        this.completedRun = completedRun;
-    }
-
     public void addTotalRunTime(int time) {
         this.totalRunTime += time;
     }
 
     public void addCorridore(Corridore corridore) {
         this.corridori.add(corridore);
-    }
-
-    public List<Corridore> getCorridori() {
-        return corridori;
     }
 
     public Corridore getCorridore(int id) {
@@ -71,7 +63,6 @@ class Squadra {
 class Corridore implements Runnable {
     private int id;
     private int runTime;
-    private boolean go = false;
     Squadra squadra;
     Testimone testimone = null;
     static CountDownLatch countdown = new CountDownLatch(41);
@@ -87,18 +78,9 @@ class Corridore implements Runnable {
         return id;
     }
 
-    public int getRunTime() {
-        return runTime;
-    }
-
-    public void setGo(boolean go) {
-        this.go = go;
-    }
 
     @Override
     public void run() {
-
-
         countdown.countDown();
         System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.getId() + ": Attendo il countdown..." + countdown.getCount());
         try {
@@ -107,13 +89,13 @@ class Corridore implements Runnable {
             e.printStackTrace();
         }
 
-            while (this.testimone == null) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        while (this.testimone == null) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+        }
 
         // Corsa
         this.runTime = (ThreadLocalRandom.current().nextInt(100, 150));
@@ -138,10 +120,10 @@ class Corridore implements Runnable {
                 this.squadra.getCorridore(((this.id + 1) - ((this.squadra.getId() - 1) * 10)) - 1).testimone = this.testimone;
                 System.out.println("SQUADRA" + this.squadra.getId() + " - Corridore" + this.getId() + ": Assegnamento del testimone nr. " + this.squadra.getCorridore(((this.id + 1) - ((this.squadra.getId() - 1) * 10)) - 1).testimone.getId() + " al Corridore " + this.squadra.getCorridore(((this.id + 1) - ((this.squadra.getId() - 1) * 10)) - 1).getId());
                 this.testimone = null;
-                } finally {
+            } finally {
                 passaggio.unlock();
             }
-            }
+        }
     }
 }
 
@@ -154,7 +136,6 @@ public class S8Esercizio3 {
         Squadra squadra2 = new Squadra(2);
         Squadra squadra3 = new Squadra(3);
         Squadra squadra4 = new Squadra(4);
-
 
 
         final List<Corridore> allCorridore = new ArrayList<>();
@@ -185,16 +166,10 @@ public class S8Esercizio3 {
             allThreads.add(new Thread(corridore));
         }
 
-        Testimone testimone1 = new Testimone(1);
-        Testimone testimone2 = new Testimone(2);
-        Testimone testimone3 = new Testimone(3);
-        Testimone testimone4 = new Testimone(4);
-
-        squadra1.getCorridore(0).testimone = testimone1;
-        squadra2.getCorridore(0).testimone = testimone2;
-        squadra3.getCorridore(0).testimone = testimone3;
-        squadra4.getCorridore(0).testimone = testimone4;
-
+        squadra1.getCorridore(0).testimone = new Testimone(1);
+        squadra2.getCorridore(0).testimone = new Testimone(2);
+        squadra3.getCorridore(0).testimone = new Testimone(3);
+        squadra4.getCorridore(0).testimone = new Testimone(4);
 
 
         // Partenza dei threads
@@ -203,18 +178,12 @@ public class S8Esercizio3 {
         for (final Thread t : allThreads)
             t.start();
 
-
-
         Corridore.countdown.countDown();
         try {
             Corridore.countdown.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-
-
-
 
         for (final Thread t : allThreads) {
             try {

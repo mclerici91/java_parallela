@@ -128,6 +128,16 @@ public class S8Esercizio1_Synchronizers {
 
         // Stampa somma delle colonne
         System.out.println("Somma delle colonne: " + totalColumns);
+
+        for (final Thread t : allThreads) {
+            try {
+                t.join();
+            } catch (final InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("--------------------------------------------");
+        System.out.println("Simulation finished");
     }
 
     private static void initMatrix() {
