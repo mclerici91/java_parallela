@@ -64,7 +64,7 @@ class Corridore implements Runnable {
     private int id;
     private int runTime;
     Squadra squadra;
-    Testimone testimone = null;
+    volatile Testimone testimone = null;
     static CountDownLatch countdown = new CountDownLatch(41);
     ReentrantLock passaggio = new ReentrantLock();
 
@@ -90,11 +90,7 @@ class Corridore implements Runnable {
         }
 
         while (this.testimone == null) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+
         }
 
         // Corsa
