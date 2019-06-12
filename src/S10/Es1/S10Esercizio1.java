@@ -52,6 +52,11 @@ public class S10Esercizio1 {
         }
 
         mainExecutor.shutdown();
+
+        while (!mainExecutor.isTerminated()) {
+            // Wait
+        }
+
         System.out.println("Simulazione terminata");
 
     }

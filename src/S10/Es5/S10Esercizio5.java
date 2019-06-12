@@ -151,8 +151,27 @@ class Mandelbrot {
     }
 }
 
+class Timer {
+    private long start = -1, stop = -1;
+
+    public void start() {
+        start = System.nanoTime();
+    }
+
+    public void stop() {
+        stop = System.nanoTime();
+    }
+
+    public long getElapsed() {
+        if (start < 0 || stop < 0)
+            return 0;
+        return stop - start;
+    }
+}
+
 public class S10Esercizio5 extends JPanel {
     private static final long serialVersionUID = -765326845524613343L;
+    final Timer timer = new Timer();
 
     static Executor mainExecutor;
 
@@ -219,6 +238,7 @@ public class S10Esercizio5 extends JPanel {
      * keep the GUI responsive.
      */
     void start() {
+
         // change name while computation is in progress
         startButton.setText("Abort");
         imagePanel.resetImage();
@@ -241,6 +261,8 @@ public class S10Esercizio5 extends JPanel {
         threadsCompleted = 0;
 
         mainExecutor = Executors.newFixedThreadPool(threadCount);
+
+        timer.start();
 
         for (int i = 0; i < threadCount; i++) {
             final int startRow; // first row computed by thread number i
@@ -275,6 +297,8 @@ public class S10Esercizio5 extends JPanel {
                 }
             });
         }
+        timer.stop();
+        System.out.println("Elapsed time: " + timer.getElapsed() + " ns - " + threadCount + " Threads.");
     }
 
     /**
