@@ -47,19 +47,58 @@ class AssemblingWorker implements Runnable {
     public void run() {
         final Random random = new Random();
         int failureCounter = 0;
+
+        Depot supplier1 = null;
+        Depot supplier2 = null;
+        Depot supplier3 = null;
+
         while (true) {
 
             // Choose randomly 3 different suppliers
             final List<Depot> depots = new ArrayList<>();
+            int[] ordered = new int[3];
+            int orderCount = -1;
+
             while (depots.size() != 3) {
-                final Depot randomDepot = S9Esercizio2.suppliers[random.nextInt(S9Esercizio2.suppliers.length)];
-                if (!depots.contains(randomDepot))
+                int temp = random.nextInt(S9Esercizio2.suppliers.length);
+                final Depot randomDepot = S9Esercizio2.suppliers[temp];
+                if (!depots.contains(randomDepot)) {
                     depots.add(randomDepot);
+                    ordered[++orderCount] = temp;
+                }
             }
 
-            final Depot supplier1 = depots.get(0);
-            final Depot supplier2 = depots.get(1);
-            final Depot supplier3 = depots.get(2);
+            // Riordinamento dei suppliers
+            if (ordered[0] > ordered[1] && ordered[0] > ordered[2]) {
+                supplier1 = depots.get(0);
+                if (ordered[1] > ordered[2]) {
+                    supplier2 = depots.get(1);
+                    supplier3 = depots.get(2);
+                } else {
+                    supplier2 = depots.get(2);
+                    supplier3 = depots.get(1);
+                }
+            } else {
+                if (ordered[1] > ordered[0] && ordered[1] > ordered[2]) {
+                    supplier1 = depots.get(1);
+                    if (ordered[0] > ordered[2]) {
+                        supplier2 = depots.get(0);
+                        supplier3 = depots.get(2);
+                    } else {
+                        supplier2 = depots.get(2);
+                        supplier3 = depots.get(0);
+                    }
+                } else {
+                    supplier1 = depots.get(2);
+                    if (ordered[0] > ordered[1]) {
+                        supplier2 = depots.get(0);
+                        supplier3 = depots.get(1);
+                    } else {
+                        supplier2 = depots.get(1);
+                        supplier3 = depots.get(0);
+                    }
+                }
+            }
 
             log("assembling from : " + supplier1 + ", " + supplier2 + ", " + supplier3);
             synchronized (supplier1) {
