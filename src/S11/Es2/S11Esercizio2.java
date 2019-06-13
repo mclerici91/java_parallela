@@ -318,5 +318,9 @@ public class S11Esercizio2 {
         System.out.println("Completed in " + ((endTime - startTime)) + " ms" + " (computation time=" + (endTime - computeTime) + " ms)");
 
         // Completed in 6291ms - computation time: 6291ms
+
+        /*Rispetto alle versioni sviluppate nell'Esercizio 1, i tempi d'esecuzione
+        risultano maggiori e il computation time corrisponde al tempo d'esecuzione,
+        mentre nelle altre versioni risultava minore.*/
     }
 }
